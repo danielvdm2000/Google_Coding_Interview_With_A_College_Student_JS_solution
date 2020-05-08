@@ -36,7 +36,7 @@ function findTimeToMeet(meetingTime, ...calenders) {
   const transformedCalenders = calenders.map(addDailyBoundsAsMeetings)
 
   // Convert the meeting times into minutes
-  let allMeetings = transformedCalenders.flat().map(meeting => meeting.map(timeStringToMinuts))
+  const allMeetings = transformedCalenders.flat().map(meeting => meeting.map(timeStringToMinuts))
 
   // Sort the meetings by the start time and then the end time
   allMeetings.sort((a, b) => {
@@ -44,6 +44,20 @@ function findTimeToMeet(meetingTime, ...calenders) {
     if (a[0] < b[0]) return -1
     return a[1] - b[1]
   })
+
+  // Merge meetings
+  for (let i = 0; i < allMeetings.length - 1; i++) {
+    const current = allMeetings[i]
+    const next = allMeetings[i + 1]
+
+    const meetingsOverlap = current[1] >= next[0]
+    if (meetingsOverlap) {
+      const newEndTime = Math.max(next[1], current[1])
+      const newStartTime = current[0]
+      allMeetings.splice(i, 2, [newStartTime, newEndTime])
+      i = -1
+    }
+  }
 
   // Get the time inbetween all the meetings which is long enough for the meeting
   const freeTime = []
